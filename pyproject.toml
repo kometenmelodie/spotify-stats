@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "spotify-stats"
+version = "0.1.0"
+description = ""
+authors = ["Jakob Klotz <88966745+kometenmelodie@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^1.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
