@@ -28,7 +28,6 @@ def get_songs_played_by_album(df: pd.DataFrame) -> pd.DataFrame:
 def get_songs_played_by_artist(
         df: pd.DataFrame, exclude_skipped: bool = True,
         frequency: bool = False) -> pd.DataFrame:
-
     if exclude_skipped:
         # only consider songs which have been listened to entirely
         df = check_whole_song_played(df)
@@ -59,5 +58,32 @@ def hours_listened(df: pd.DataFrame) -> tuple[int, int]:
     days = hours / 24
 
     return hours, days
+
+
+def get_most_played_songs(
+        df: pd.DataFrame, exclude_skipped: bool = True,
+        frequency: bool = False) -> pd.DataFrame:
+    """
+    Get most played songs of all time.
+    """
+
+    if exclude_skipped:
+        # only consider songs which have been listened to entirely
+        df = check_whole_song_played(df)
+
+        df = df[df["whole_played"] == 1]
+
+    if frequency:
+        # count number of songs played by artist
+        top_songs = pd.DataFrame(df["master_metadata_track_name"].value_counts())
+
+    else:
+        # calculate sum of hours listened to artists
+        top_songs = df.groupby(["master_metadata_track_name"])["minutes_played"].sum().reset_index()
+
+        # sort descending
+        top_songs = top_songs.sort_values(by="minutes_played", ascending=False)
+
+    return top_songs
 
 # def most_skipped_artist
