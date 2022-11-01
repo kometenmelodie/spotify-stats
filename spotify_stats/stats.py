@@ -17,14 +17,6 @@ def check_whole_song_played(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def test_func(df: pd.DataFrame) -> None:
-    """
-
-    :param df:
-    :return:
-    """
-
-
 def get_top_albums(
         df: pd.DataFrame,
         exclude_skipped: bool = True,
@@ -65,10 +57,10 @@ def get_top_albums(
     >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
     >>> spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET))
     >>> get_top_albums(df, top=3, cover=True, spotify_credentials=spotify, to_html=False)
-          master_metadata_album_album_name  ...                                          cover_url
-    0                       Flower Boy  ...  <img src='https://i.scdn.co/image/ab67616d0000...
-    1                              TIM  ...  <img src='https://i.scdn.co/image/ab67616d0000...
-    2                          Caracal  ...  <img src='https://i.scdn.co/image/ab67616d0000...
+       Place  ... Number of songs played
+    0      1  ...                   1228
+    1      2  ...                   1005
+    2      3  ...                    861
     [3 rows x 5 columns]
 
     """
@@ -103,13 +95,26 @@ def get_top_albums(
 
     if cover and spotify_credentials is not None:
         # spotify client credentials must be given
-        top_albums["cover_url"] = [get_cover_url(track_uri, spotify_credentials)
-                                   for track_uri in top_albums["spotify_track_uri"]]
+        top_albums["Cover"] = [get_cover_url(track_uri, spotify_credentials)
+                               for track_uri in top_albums["spotify_track_uri"]]
+
+    # drop spotify track URI
+    top_albums = top_albums.drop(columns=["spotify_track_uri"])
+
+    # rename columns
+    top_albums.columns = ["Album", "Artist", "Number of songs played", "Cover"]
+
+    # new column "Place"
+    top_albums["Place"] = [i for i in range(1, len(top_albums) + 1)]
+
+    # reorder columns
+    top_albums = top_albums.reindex(
+        columns=["Place", "Cover", "Album", "Artist", "Number of songs played"])
 
     if to_html:
         # return pandas data frame as html table
         # escape = False -> to 'render' links properly
-        top_albums = top_albums.to_html(escape=False)
+        top_albums = top_albums.to_html(escape=False, index=False)
 
     return top_albums
 
