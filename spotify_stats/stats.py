@@ -90,7 +90,7 @@ def get_top_albums(
                           on=["master_metadata_album_album_name", "master_metadata_album_artist_name"],
                           how="inner")
 
-    if top_albums is not None:
+    if top is not None:
         top_albums = top_albums.nlargest(n=top, columns=["n_songs_album"])
 
     if cover and spotify_credentials is not None:
@@ -154,11 +154,53 @@ def hours_listened(df: pd.DataFrame) -> tuple[int, int]:
     return hours, days
 
 
-def get_most_played_songs(
+def get_top_songs(
         df: pd.DataFrame, exclude_skipped: bool = True,
-        frequency: bool = False) -> pd.DataFrame:
+        frequency: bool = False, top: int | None = 20,
+        spotify_credentials: spotipy.client.Spotify | None = None,
+        cover: bool = False,
+        to_html: bool = True
+) -> pd.DataFrame:
     """
-    Get most played songs of all time.
+    Get most played songs.
+
+    Arguments:
+    ---------
+
+    df: a pandas data frame with a spotify streaming history
+
+    exclude_skipped: if true -> only consider streams which were
+        not skipped
+
+    frequency: if False -> return the times a song was streamed.
+        if True -> returns hours a specific song was streamed.
+
+    top: int specifying the number of top songs
+
+    spotify_credentials: provide spotify client id and secret
+        to get album covers using the track uri
+
+    cover: if true -> append the track uri
+
+    to_html: render the resulting data frame as html for flask
+
+    Example:
+    -------
+
+    >>> from spotipy.oauth2 import SpotifyClientCredentials
+    >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
+
+    >>> top_songs = get_top_songs(
+            df, exclude_skipped=True, frequency=True,
+            top=10, spotify_credentials=spotify,
+            cover=True, to_html=False
+        )
+    Place  ... Times played
+    0      1  ...          216
+    1      2  ...          191
+    2      3  ...          177
+    [3 rows x 6 columns]
+
     """
 
     if exclude_skipped:
@@ -168,15 +210,81 @@ def get_most_played_songs(
         df = df[df["whole_played"] == 1]
 
     if frequency:
-        # count number of songs played by artist
-        top_songs = pd.DataFrame(df["master_metadata_track_name"].value_counts())
+        # count the number a songs was played by specific track, album and artist name
+        top_songs = df.value_counts(
+            subset=["master_metadata_track_name",
+                    "master_metadata_album_album_name",
+                    "master_metadata_album_artist_name"]
+        ).reset_index(name="n_played")
 
-    else:
-        # calculate sum of hours listened to artists
-        top_songs = df.groupby(["master_metadata_track_name"])["minutes_played"].sum().reset_index()
+    if frequency is False:
+        # calculate sum of hours listened to song
+        top_songs = df.groupby([
+            "master_metadata_track_name",
+            "master_metadata_album_album_name",
+            "master_metadata_album_artist_name"
+        ])[
+            "minutes_played"].sum().reset_index()
+
+        top_songs["Hours played"] = [round(track / 60, 2) for track in top_songs["minutes_played"]]
 
         # sort descending
-        top_songs = top_songs.sort_values(by="minutes_played", ascending=False)
+        top_songs = top_songs.sort_values(by="Hours played", ascending=False)
+
+        # drop minutes_played
+        top_songs = top_songs.drop(columns=["minutes_played"])
+
+    # subset df
+    df = df[["master_metadata_track_name",
+             "master_metadata_album_album_name",
+             "master_metadata_album_artist_name",
+             "spotify_track_uri"]]
+
+    # only keep one instance of track, album and artist name as only one track URI
+    # is required to get a corresponding album cover
+    # track URI can change over time
+    df = df.drop_duplicates(
+        subset=["master_metadata_track_name", "master_metadata_album_album_name",
+                "master_metadata_album_artist_name"])
+
+    # merge df onto top songs
+    top_songs = pd.merge(top_songs, df,
+                         on=["master_metadata_track_name", "master_metadata_album_album_name",
+                             "master_metadata_album_artist_name"],
+                         how="inner")
+
+    if top is not None:
+        if frequency:
+            top_songs = top_songs.nlargest(n=top, columns=["n_played"])
+        if frequency is False:
+            top_songs = top_songs.nlargest(n=top, columns=["Hours played"])
+
+    if cover and spotify_credentials is not None:
+        # spotify client credentials must be given
+        top_songs["Cover"] = [get_cover_url(track_uri, spotify_credentials)
+                              for track_uri in top_songs["spotify_track_uri"]]
+
+    # drop spotify track URI
+    top_songs = top_songs.drop(columns=["spotify_track_uri"])
+
+    # rename columns
+    top_songs.columns = ["Track", "Album", "Artist", "Times played", "Cover"]
+
+    # new column "Place"
+    top_songs["Place"] = [i for i in range(1, len(top_songs) + 1)]
+
+    # reorder columns
+    top_songs = top_songs.reindex(
+        columns=["Place", "Cover", "Track", "Album", "Artist", "Times played"])
+
+    if frequency is False:
+        # rename column
+        top_songs = top_songs.rename(columns={"Times played": "Hours listened"})
+
+    if to_html:
+        # return pandas data frame as html table
+        # escape = False -> to 'render' links properly
+        top_songs = top_songs.to_html(escape=False, index=False)
 
     return top_songs
 
