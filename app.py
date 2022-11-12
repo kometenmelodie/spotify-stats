@@ -1,7 +1,8 @@
-from flask import Flask, render_template
-import pandas as pd
-from spotify_stats.stats import get_top_songs, get_top_albums
 import spotipy
+import pandas as pd
+from flask import Flask, render_template
+from spotify_stats.stats import get_top_songs, get_top_albums, get_top_skipped_songs
+
 from spotipy.oauth2 import SpotifyClientCredentials
 
 from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
@@ -16,11 +17,10 @@ app = Flask(__name__)
 
 @app.route("/")
 def welcome():
-
     return render_template("index.html")
 
 
-@app.route('/top-songs')
+@app.route("/top-songs")
 def display_top_songs():
     top_songs = get_top_songs(
         df, exclude_skipped=True, frequency=True,
@@ -30,7 +30,7 @@ def display_top_songs():
     return top_songs
 
 
-@app.route('/top-albums')
+@app.route("/top-albums")
 def display_top_albums():
     top_albums = get_top_albums(
         df, exclude_skipped=True, top=3,
@@ -39,5 +39,15 @@ def display_top_albums():
     return top_albums
 
 
-if __name__ == '__main__':
+@app.route("/top-skipped-songs")
+def display_top_skipped_tracks():
+    top_skipped_tracks = get_top_skipped_songs(
+        df, top=20,
+        spotify_credentials=spotify,
+        cover=True, to_html=True)
+
+    return top_skipped_tracks
+
+
+if __name__ == "__main__":
     app.run()
