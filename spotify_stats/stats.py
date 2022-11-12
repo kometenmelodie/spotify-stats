@@ -98,18 +98,27 @@ def get_top_albums(
         top_albums["Cover"] = [get_cover_url(track_uri, spotify_credentials)
                                for track_uri in top_albums["spotify_track_uri"]]
 
+    # new column "Place"
+    top_albums["Place"] = [i for i in range(1, len(top_albums) + 1)]
+
     # drop spotify track URI
     top_albums = top_albums.drop(columns=["spotify_track_uri"])
 
     # rename columns
-    top_albums.columns = ["Album", "Artist", "Number of songs played", "Cover"]
+    new_names = ["Album", "Artist", "Number of songs played", "Place"]
 
-    # new column "Place"
-    top_albums["Place"] = [i for i in range(1, len(top_albums) + 1)]
+    if "Cover" not in top_albums.columns:
+        top_albums.columns = new_names
+        # reorder columns
+        top_albums = top_albums.reindex(
+            columns=["Place", "Album", "Artist", "Number of songs played"])
 
-    # reorder columns
-    top_albums = top_albums.reindex(
-        columns=["Place", "Cover", "Album", "Artist", "Number of songs played"])
+    if "Cover" in top_albums.columns:
+        new_names.insert(-1, "Cover")
+        top_albums.columns = new_names
+        # reorder columns
+        top_albums = top_albums.reindex(
+            columns=["Place", "Cover", "Album", "Artist", "Number of songs played"])
 
     if to_html:
         # return pandas data frame as html table
@@ -267,15 +276,22 @@ def get_top_songs(
     # drop spotify track URI
     top_songs = top_songs.drop(columns=["spotify_track_uri"])
 
-    # rename columns
-    top_songs.columns = ["Track", "Album", "Artist", "Times played", "Cover"]
-
     # new column "Place"
     top_songs["Place"] = [i for i in range(1, len(top_songs) + 1)]
 
-    # reorder columns
-    top_songs = top_songs.reindex(
-        columns=["Place", "Cover", "Track", "Album", "Artist", "Times played"])
+    new_names = ["Track", "Album", "Artist", "Times played", "Place"]
+    if "Cover" not in top_songs.columns:
+        top_songs.columns = new_names
+        # reorder columns
+        top_songs = top_songs.reindex(
+            columns=["Place", "Track", "Album", "Artist", "Times played"])
+
+    if "Cover" in top_songs.columns:
+        new_names.insert(-1, "Cover")
+        top_songs.columns = new_names
+        # reorder columns
+        top_songs = top_songs.reindex(
+            columns=["Place", "Cover", "Track", "Album", "Artist", "Times played"])
 
     if frequency is False:
         # rename column
@@ -318,9 +334,10 @@ def get_top_skipped_songs(
     >>> from spotipy.oauth2 import SpotifyClientCredentials
     >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
 
-    >>> top_songs = get_top_skipped_songs(
+    >>> top_skipped_songs = get_top_skipped_songs(
             df, top=3, spotify_credentials=spotify,
             cover=True, to_html=False)
+    >>> top_skipped_songs
        Place  ... Times skipped
     0      1  ...           122
     1      2  ...           103
