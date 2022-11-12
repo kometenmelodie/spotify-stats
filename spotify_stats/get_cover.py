@@ -46,3 +46,20 @@ def get_cover_url(
     cover_html = "<img src='" + cover_url + "'>"
 
     return cover_html
+
+
+def get_artist_image(
+        search_term: str, spotify_credentials: spotipy.client.Spotify
+) -> str:
+    """
+    Search for an artist on spotify and retrieve a URL to the image of the artist.
+    """
+
+    artist = spotify_credentials.search(search_term, limit=1, type="artist")
+
+    image_url = artist["artists"]["items"][0]["images"][1]["url"]
+
+    # return as html
+    image_url = "<img src='" + image_url + "'>"
+
+    return image_url

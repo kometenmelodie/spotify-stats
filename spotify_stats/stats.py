@@ -2,19 +2,41 @@ import pandas as pd
 import numpy as np
 import spotipy
 
-from spotify_stats.get_cover import get_cover_url
+from spotify_stats.get_cover import get_cover_url, get_artist_image
 
 
 def check_whole_song_played(df: pd.DataFrame) -> pd.DataFrame:
     """
     Check if the whole song was played.
     If 'reason_end' == 'trackdone' the whole song was played.
+
+    Arguments:
+    ---------
+
+    df: a pandas data frame with a spotify streaming history
     """
 
     df["whole_played"] = np.where(
         df.reason_end == "trackdone", 1, 0)
 
     return df
+
+
+def hours_listened(df: pd.DataFrame) -> tuple[int, int]:
+    """
+    Calculate hours and days listened to Spotify.
+
+    Arguments:
+    ---------
+
+    df: a pandas data frame with a spotify streaming history
+    """
+
+    hours = (sum(df.minutes_played)) / 60
+
+    days = hours / 24
+
+    return hours, days
 
 
 def get_top_albums(
@@ -128,39 +150,95 @@ def get_top_albums(
     return top_albums
 
 
-def get_songs_played_by_artist(
+def get_top_artists(
         df: pd.DataFrame, exclude_skipped: bool = True,
-        frequency: bool = False) -> pd.DataFrame:
+        top: int | None = 20,
+        spotify_credentials: spotipy.client.Spotify | None = None,
+        artist_image: bool = False,
+        to_html: bool = True
+) -> pd.DataFrame:
+    """
+    Retrieve top artists based on hours listened to.
+
+    Arguments:
+    ---------
+
+    df: a pandas data frame with a spotify streaming history
+
+    exclude_skipped: if true -> only consider entries which were
+        not skipped
+
+    top: int specifying the number of top artists
+
+    spotify_credentials: provide spotify client id and secret
+        to get artist images
+
+    artist_image: if true -> add url to image of artist
+
+    to_html: render the resulting data frame as html for flask
+
+    Example:
+    -------
+
+    >>> top_artists = get_top_artists(
+        df, exclude_skipped=True, top=10,
+        artist_image=True, spotify_credentials=spotify, to_html=True)
+    >>> top_artists
+              Place  ... Hours listened
+    1464      1  ...         294.63
+    1797      2  ...         255.36
+    1446      3  ...         196.24
+    [3 rows x 4 columns]
+    """
+
     if exclude_skipped:
         # only consider songs which have been listened to entirely
         df = check_whole_song_played(df)
 
         df = df[df["whole_played"] == 1]
 
-    if frequency:
-        # count number of songs played by artist
-        top_artists = pd.DataFrame(df["master_metadata_album_artist_name"].value_counts())
+    # calculate sum of hours listened to artists
+    top_artists = df.groupby(["master_metadata_album_artist_name"])["minutes_played"].sum().reset_index()
 
-    else:
-        # calculate sum of hours listened to artists
-        top_artists = df.groupby(["master_metadata_album_artist_name"])["minutes_played"].sum().reset_index()
+    # calculate hours
+    top_artists["Hours listened"] = [round(artist / 60, 2) for artist in top_artists["minutes_played"]]
 
-        # sort descending
-        top_artists = top_artists.sort_values(by="minutes_played", ascending=False)
+    # drop minutes column
+    top_artists = top_artists.drop(columns=["minutes_played"])
+
+    # sort descending
+    top_artists = top_artists.sort_values(by="Hours listened", ascending=False)
+
+    if top is not None:
+        top_artists = top_artists.nlargest(n=top, columns=["Hours listened"])
+
+    top_artists = top_artists.rename(columns={"master_metadata_album_artist_name": "Artist"})
+
+    # retrieve image of artists
+    if artist_image and spotify_credentials is not None:
+        # spotify client credentials must be given
+        top_artists["Image"] = [get_artist_image(artist, spotify_credentials)
+                                for artist in top_artists["Artist"]]
+
+    # new column "Place"
+    top_artists["Place"] = [i for i in range(1, len(top_artists) + 1)]
+
+    if "Image" not in top_artists.columns:
+        # reorder columns
+        top_artists = top_artists.reindex(
+            columns=["Place", "Artist", "Hours listened"])
+
+    if "Image" in top_artists.columns:
+        # reorder columns
+        top_artists = top_artists.reindex(
+            columns=["Place", "Image", "Artist", "Hours listened"])
+
+    if to_html:
+        # return pandas data frame as html table
+        # escape = False -> to 'render' links properly
+        top_artists = top_artists.to_html(escape=False, index=False)
 
     return top_artists
-
-
-def hours_listened(df: pd.DataFrame) -> tuple[int, int]:
-    """
-    Calculate hours and days listened to Spotify.
-    """
-
-    hours = (sum(df.minutes_played)) / 60
-
-    days = hours / 24
-
-    return hours, days
 
 
 def get_top_songs(
