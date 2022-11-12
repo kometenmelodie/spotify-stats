@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 import pandas as pd
 from spotify_stats.stats import get_top_songs, get_top_albums
 import spotipy
@@ -12,6 +12,12 @@ spotify = spotipy.Spotify(
 df = pd.read_csv("streaming_history.csv")
 
 app = Flask(__name__)
+
+
+@app.route("/")
+def welcome():
+
+    return render_template("index.html")
 
 
 @app.route('/top-songs')
