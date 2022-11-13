@@ -13,7 +13,7 @@ RUN python -m poetry install
 COPY spotify_stats/ ./spotify_stats
 COPY static/ ./static
 COPY templates/ ./templates
-COPY config.py .
+COPY .env .
 COPY streaming_history.csv .
 COPY app.py .
 

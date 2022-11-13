@@ -68,7 +68,7 @@ def display_top_skipped_tracks():
 
 if __name__ == "__main__":
     # to run in container
-    # app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=80)
 
     # use app.run() if you are not containerizing the application
-    app.run()
+    # app.run()
