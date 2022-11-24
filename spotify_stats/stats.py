@@ -44,8 +44,7 @@ def get_top_albums(
         exclude_skipped: bool = True,
         top: int | None = 20,
         spotify_credentials: spotipy.client.Spotify | None = None,
-        cover: bool = False,
-        to_html: bool = True
+        cover: bool = False
 
 ) -> pd.DataFrame | str:
     """
@@ -70,15 +69,19 @@ def get_top_albums(
 
     cover: if true -> append the track uri
 
-    to_html: render the resulting data frame as html for flask
-
     Example:
     -------
 
     >>> from spotipy.oauth2 import SpotifyClientCredentials
-    >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
-    >>> spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET))
-    >>> get_top_albums(df, top=3, cover=True, spotify_credentials=spotify, to_html=False)
+    >>> from dotenv import load_dotenv
+    >>> load_dotenv()
+
+    >>> spotify = spotipy.Spotify(
+        client_credentials_manager=SpotifyClientCredentials(
+            os.getenv("SPOTIFY_CLIENT_ID"),
+            os.getenv("SPOTIFY_CLIENT_SECRET")
+        ))
+    >>> get_top_albums(df, top=3, cover=True, spotify_credentials=spotify)
        Place  ... Number of songs played
     0      1  ...                   1228
     1      2  ...                   1005
@@ -142,11 +145,6 @@ def get_top_albums(
         top_albums = top_albums.reindex(
             columns=["Place", "Cover", "Album", "Artist", "Number of songs played"])
 
-    if to_html:
-        # return pandas data frame as html table
-        # escape = False -> to 'render' links properly
-        top_albums = top_albums.to_html(escape=False, index=False)
-
     return top_albums
 
 
@@ -154,8 +152,7 @@ def get_top_artists(
         df: pd.DataFrame, exclude_skipped: bool = True,
         top: int | None = 20,
         spotify_credentials: spotipy.client.Spotify | None = None,
-        artist_image: bool = False,
-        to_html: bool = True
+        artist_image: bool = False
 ) -> pd.DataFrame:
     """
     Retrieve top artists based on hours listened to.
@@ -175,14 +172,20 @@ def get_top_artists(
 
     artist_image: if true -> add url to image of artist
 
-    to_html: render the resulting data frame as html for flask
-
     Example:
     -------
+    >>> from spotipy.oauth2 import SpotifyClientCredentials
+    >>> from dotenv import load_dotenv
+    >>> load_dotenv()
 
+    >>> spotify = spotipy.Spotify(
+        client_credentials_manager=SpotifyClientCredentials(
+            os.getenv("SPOTIFY_CLIENT_ID"),
+            os.getenv("SPOTIFY_CLIENT_SECRET")
+        ))
     >>> top_artists = get_top_artists(
         df, exclude_skipped=True, top=10,
-        artist_image=True, spotify_credentials=spotify, to_html=True)
+        artist_image=True, spotify_credentials=spotify)
     >>> top_artists
               Place  ... Hours listened
     1464      1  ...         294.63
@@ -233,11 +236,6 @@ def get_top_artists(
         top_artists = top_artists.reindex(
             columns=["Place", "Image", "Artist", "Hours listened"])
 
-    if to_html:
-        # return pandas data frame as html table
-        # escape = False -> to 'render' links properly
-        top_artists = top_artists.to_html(escape=False, index=False)
-
     return top_artists
 
 
@@ -245,8 +243,7 @@ def get_top_songs(
         df: pd.DataFrame, exclude_skipped: bool = True,
         frequency: bool = False, top: int | None = 20,
         spotify_credentials: spotipy.client.Spotify | None = None,
-        cover: bool = False,
-        to_html: bool = True
+        cover: bool = False
 ) -> pd.DataFrame:
     """
     Get most played songs.
@@ -269,18 +266,21 @@ def get_top_songs(
 
     cover: if true -> append the track uri
 
-    to_html: render the resulting data frame as html for flask
-
     Example:
     -------
-
     >>> from spotipy.oauth2 import SpotifyClientCredentials
-    >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
+    >>> from dotenv import load_dotenv
+    >>> load_dotenv()
 
+    >>> spotify = spotipy.Spotify(
+        client_credentials_manager=SpotifyClientCredentials(
+            os.getenv("SPOTIFY_CLIENT_ID"),
+            os.getenv("SPOTIFY_CLIENT_SECRET")
+        ))
     >>> top_songs = get_top_songs(
             df, exclude_skipped=True, frequency=True,
             top=3, spotify_credentials=spotify,
-            cover=True, to_html=False
+            cover=True
         )
     Place  ... Times played
     0      1  ...          216
@@ -375,19 +375,13 @@ def get_top_songs(
         # rename column
         top_songs = top_songs.rename(columns={"Times played": "Hours listened"})
 
-    if to_html:
-        # return pandas data frame as html table
-        # escape = False -> to 'render' links properly
-        top_songs = top_songs.to_html(escape=False, index=False)
-
     return top_songs
 
 
 def get_top_skipped_songs(
         df: pd.DataFrame, top: int | None = 20,
         spotify_credentials: spotipy.client.Spotify | None = None,
-        cover: bool = False,
-        to_html: bool = True
+        cover: bool = False
 ) -> pd.DataFrame:
     """
     Get most skipped songs.
@@ -404,17 +398,22 @@ def get_top_skipped_songs(
 
     cover: if true -> append the track uri
 
-    to_html: render the resulting data frame as html for flask
-
     Example:
     -------
 
     >>> from spotipy.oauth2 import SpotifyClientCredentials
-    >>> from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
+    >>> from dotenv import load_dotenv
+    >>> load_dotenv()
+
+    >>> spotify = spotipy.Spotify(
+        client_credentials_manager=SpotifyClientCredentials(
+            os.getenv("SPOTIFY_CLIENT_ID"),
+            os.getenv("SPOTIFY_CLIENT_SECRET")
+        ))
 
     >>> top_skipped_songs = get_top_skipped_songs(
             df, top=3, spotify_credentials=spotify,
-            cover=True, to_html=False)
+            cover=True)
     >>> top_skipped_songs
        Place  ... Times skipped
     0      1  ...           122
@@ -484,10 +483,5 @@ def get_top_skipped_songs(
         # reorder columns
         top_skipped_songs = top_skipped_songs.reindex(
             columns=["Place", "Cover", "Track", "Album", "Artist", "Times skipped"])
-
-    if to_html:
-        # return pandas data frame as html table
-        # escape = False -> to 'render' links properly
-        top_skipped_songs = top_skipped_songs.to_html(escape=False, index=False)
 
     return top_skipped_songs
