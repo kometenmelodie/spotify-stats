@@ -1,11 +1,32 @@
+/* Begin: center the whole html */
+/* taken from: https://stackoverflow.com/questions/6464592/how-to-align-entire-html-body-to-the-center */
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+    display: table-cell;
+    vertical-align: middle;
+}
+/* End: center the whole html */
 body {
   background: white;
   margin-top: 50px;
   margin-left: 100px;
 }
 
-h3 {
-    color: purple;
+h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+p {
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* copied from https://getcssscan.com/css-buttons-examples */

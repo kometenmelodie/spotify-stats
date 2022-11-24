@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+    <meta charset="UTF-8">
+    <head>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+
+<body>
+    <h1>&#127911; Hours listened to Spotify per month &#127911;</h1>
+    <div id='chart' class='chart'”></div>
+</body>
+
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+<script type='text/javascript'>
+    var graphs = {{graphJSON | safe}};
+    Plotly.plot('chart',graphs,{});
+</script>
+</html>
