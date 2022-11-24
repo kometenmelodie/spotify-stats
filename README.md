@@ -113,5 +113,5 @@ df = pd.read_csv("streaming_history.csv")
 
 top_albums = get_top_albums(
     df, exclude_skipped=True, top=50,
-    cover=True, spotify_credentials=spotify, to_html=False)
+    cover=True, spotify_credentials=spotify)
 ```
