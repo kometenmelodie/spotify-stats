@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import spotipy
+from plotly.graph_objects import Figure
+import plotly.express as px
 
 from spotify_stats.get_cover import get_cover_url, get_artist_image
 
@@ -485,3 +487,33 @@ def get_top_skipped_songs(
             columns=["Place", "Cover", "Track", "Album", "Artist", "Times skipped"])
 
     return top_skipped_songs
+
+
+def get_chart_hours_listened(df: pd.DataFrame) -> Figure:
+    """
+    Get a plotly bar chart with the sum of hours listened to spotify
+    for each month.
+
+    Arguments:
+    ---------
+
+    df: a pandas data frame with a spotify streaming history
+    """
+
+    # convert to datetime
+    df["date"] = pd.to_datetime(df["ts"])
+
+    # get Year-month
+    df["Year-Month"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
+
+    # sum up minutes for each day
+    df_bar = df.groupby(["Year-Month"])["minutes_played"].sum().reset_index()
+
+    # calculate hours
+    df_bar["Hours listened per month"] = [round(day / 60, 2) for day in df_bar["minutes_played"]]
+
+    fig = px.bar(df_bar, x="Year-Month", y="Hours listened per month")
+    # change bar color
+    fig.update_traces(marker_color="#16437E")
+
+    return fig
