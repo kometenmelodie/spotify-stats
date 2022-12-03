@@ -512,7 +512,11 @@ def get_chart_hours_listened(df: pd.DataFrame) -> Figure:
     # calculate hours
     df_bar["Hours listened per month"] = [round(day / 60, 2) for day in df_bar["minutes_played"]]
 
-    fig = px.bar(df_bar, x="Year-Month", y="Hours listened per month")
+    # total listening hours
+    total_hours = sum(df_bar["Hours listened per month"])
+
+    fig = px.bar(df_bar, x="Year-Month", y="Hours listened per month",
+                 title=f"Total listening time: <b>{total_hours:.2f} hours</b>")
     # change bar color
     fig.update_traces(marker_color="#16437E")
 
