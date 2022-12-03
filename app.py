@@ -85,7 +85,7 @@ def display_top_skipped_tracks():
     # pandas to html
     top_skipped_tracks = style_pandas_html_table(
         data_frame=top_skipped_tracks,
-        table_heading="&#127911; Your top skipped artists &#127911;")
+        table_heading="&#127911; Your top skipped songs &#127911;")
 
     return top_skipped_tracks
 
