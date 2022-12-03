@@ -5,21 +5,23 @@ Spotify Rewind (Spotify's own statistics) always focuses on a single year. On th
 `Spotify-stats` uses your entire streaming history and lets you visualize your top artists,
 top albums, top songs and most skipped songs.
 
-A flask app is included and provides a basic interface to browse your stats. The app can be run using a
+![](images/screenshot_app.png)
+
+A flask app is included and provides a basic interface to browse your stats. The app runs with a
 `docker` container. Unlike other spotify statistics websites, `Spotify-stats` does not track any information
-and runs locally. Under the hood `Spotify-stats` uses
+and runs locally. Under the hood, `Spotify-stats` uses
 your streaming history and [`spotipy`](https://spotipy.readthedocs.io/en/2.21.0/) (a `Python` package
 for the `Spotify Web API`) to retrieve album covers. Hence, some prerequisites are needed.
 
 # Prerequisites
 
-As mentioned a streaming history and developer access to the `Spotify Web API` are needed.
+As mentioned, a streaming history and developer access to the `Spotify Web API` are needed.
 First retrieve your streaming history. Simply write an e-mail to `privacy@spotify.com` and request your
-listening history. After two days I got a confirmation mail stating that my data is being collected. After
+listening history. After two days I got a confirmation mail, stating that my data is being collected. After
 another 12 days Spotify provided me a download link for my data (a bunch of json files).
 
 Next, visit the [Spotify developer site](https://developer.spotify.com/) as you will need access to the `Spotify Web API`.
-Log in with your Spotify account and click on Dashboard. Here we have to create an app. Provide an app name and description.
+Log in with your Spotify account and click on Dashboard. Here you have to create an app. Provide an app name and description.
 After creation, you will get a client ID and client secret. `spotipy` requires these credentials.
 
 Now after a quick set-up you can start to use the package.
@@ -28,12 +30,13 @@ Now after a quick set-up you can start to use the package.
 
 ## Create streaming history file
 
-First, create a csv from your streaming history. Create a `Python` file with following content:
+First, create a `.csv` from your streaming history. Create a `Python` file with following content:
 
 ```python
 from spotify_stats.get_streams import get_streams
 
-# streaming history to csv from json files
+#Note: pandas is required. 
+# streaming history to .csv from json files
 df = get_streams("path-to-your-json-files")
 
 df.to_csv("streaming_history.csv", index=False)
@@ -88,7 +91,7 @@ Run
 python -m pip install poetry
 python -m poetry install
 ```
-to install dependencies.
+to install the dependencies.
 
 A quick example on how to use the `Python` package on its own:
 
@@ -109,9 +112,11 @@ spotify = spotipy.Spotify(
         os.getenv("SPOTIFY_CLIENT_SECRET")
     ))
 
+# read your streaming history
 df = pd.read_csv("streaming_history.csv")
 
 top_albums = get_top_albums(
+    # do not consider songs which were skipped
     df, exclude_skipped=True, top=50,
     cover=True, spotify_credentials=spotify)
 ```
