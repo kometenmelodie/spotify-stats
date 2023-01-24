@@ -4,8 +4,9 @@ from PIL import Image
 
 
 def get_cover_image(
-        track_uri: str, spotify_credentials: spotipy.client.Spotify,
-        out_path: str = None
+    track_uri: str,
+    spotify_credentials: spotipy.client.Spotify,
+    out_path: str = None,
 ) -> Image:
     """
     Use spotipy to retrieve a cover as PNG of a Spotify track URI.
@@ -30,7 +31,7 @@ def get_cover_image(
 
 
 def get_cover_url(
-        track_uri: str, spotify_credentials: spotipy.client.Spotify
+    track_uri: str, spotify_credentials: spotipy.client.Spotify
 ) -> str:
     """
     Get link to the cover in order to display it in html.
@@ -49,7 +50,7 @@ def get_cover_url(
 
 
 def get_artist_image(
-        search_term: str, spotify_credentials: spotipy.client.Spotify
+    search_term: str, spotify_credentials: spotipy.client.Spotify
 ) -> str:
     """
     Search for an artist on spotify and retrieve a URL to the image of the artist.

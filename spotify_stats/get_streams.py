@@ -1,4 +1,5 @@
 from os import listdir
+
 import pandas as pd
 
 
@@ -8,8 +9,7 @@ def get_streams(path: str) -> pd.DataFrame:
     The data frame contains the streaming history sorted
     by the date a song was played.
     """
-    files = [path + x for x in listdir(path)
-             if x.startswith("endsong_")]
+    files = [path + x for x in listdir(path) if x.startswith("endsong_")]
 
     files = sorted(files)
 
