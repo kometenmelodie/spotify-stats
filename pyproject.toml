@@ -6,7 +6,7 @@ authors = ["Jakob Klotz <88966745+kometenmelodie@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 pandas = "^1.5.0"
 spotipy = "^2.20.0"
 requests = "^2.28.1"
@@ -30,11 +30,11 @@ select = [
     "I001"
 ]
 line-length = 79
-target-version = "py310"
+target-version = "py311"
 
 [tool.black]
 line-length = 79
-target-version = ["py310"]
+target-version = ["py311"]
 
 [build-system]
 requires = ["poetry-core"]
