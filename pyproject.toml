@@ -3,6 +3,7 @@ name = "spotify-stats"
 version = "0.1.0"
 description = "Enhanced Spotify statistics."
 authors = ["Jakob Klotz <88966745+kometenmelodie@users.noreply.github.com>"]
+license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
