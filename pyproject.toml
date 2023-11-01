@@ -33,10 +33,6 @@ select = [
 line-length = 79
 target-version = "py311"
 
-[tool.black]
-line-length = 79
-target-version = ["py311"]
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
